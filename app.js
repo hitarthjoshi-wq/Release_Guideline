@@ -128,6 +128,9 @@ let firebaseApp = null;
 let dbRef = null;
 let isConnectedToFirebase = false;
 
+// Edit State Track
+let editingItemId = null;
+
 // Current Active Application State
 let appState = loadLocalState();
 
@@ -271,7 +274,7 @@ function initEventListeners() {
     });
   });
 
-  // Quick Add Form Submit
+  // Quick Add / Edit Form Submit Handler
   const quickAddForm = document.getElementById("quickAddForm");
   if (quickAddForm) {
     quickAddForm.addEventListener("submit", (e) => {
@@ -292,27 +295,48 @@ function initEventListeners() {
         ? rawSubBullets.split("\n").map(s => s.trim()).filter(Boolean)
         : [];
 
-      const newItem = {
-        id: "item-" + Date.now(),
-        category,
-        module: moduleName,
-        text,
-        subBullets,
-        author
-      };
-
       if (!appState.items) appState.items = [];
-      appState.items.push(newItem);
+
+      if (editingItemId) {
+        // Edit Mode: Update existing item
+        const itemIdx = appState.items.findIndex(i => i.id === editingItemId);
+        if (itemIdx !== -1) {
+          appState.items[itemIdx] = {
+            ...appState.items[itemIdx],
+            category,
+            module: moduleName,
+            text,
+            subBullets,
+            author
+          };
+          showToast(`Updated "${moduleName}"!`, "success");
+        }
+        cancelEdit();
+      } else {
+        // Add Mode: Append new item
+        const newItem = {
+          id: "item-" + Date.now(),
+          category,
+          module: moduleName,
+          text,
+          subBullets,
+          author
+        };
+        appState.items.push(newItem);
+        showToast(`Added note under ${category.toUpperCase()}!`, "success");
+
+        // Reset form
+        document.getElementById("addModule").value = "";
+        document.getElementById("addText").value = "";
+        document.getElementById("addSubBullets").value = "";
+      }
+
       saveState(true);
-      
-      // Reset form
-      document.getElementById("addModule").value = "";
-      document.getElementById("addText").value = "";
-      document.getElementById("addSubBullets").value = "";
-      
-      showToast(`Added note under ${category.toUpperCase()}!`, "success");
     });
   }
+
+  // Cancel Edit Button
+  document.getElementById("btnCancelEdit")?.addEventListener("click", cancelEdit);
 
   // Header Metadata Inputs
   document.getElementById("metaTitle")?.addEventListener("change", (e) => {
@@ -370,6 +394,62 @@ function initEventListeners() {
     updateSyncStatusUI(false);
     showToast("Disconnected Firebase. Using Local Storage.", "info");
   });
+}
+
+// Edit Existing Item Handler
+window.editItem = function(id) {
+  const item = (appState.items || []).find(i => i.id === id);
+  if (!item) return;
+
+  editingItemId = id;
+
+  // Populate Form Fields
+  document.getElementById("addCategory").value = item.category || "improvements";
+  document.getElementById("addModule").value = item.module || "";
+  document.getElementById("addText").value = item.text || "";
+  document.getElementById("addSubBullets").value = (item.subBullets || []).join("\n");
+  document.getElementById("addAuthor").value = item.author || "Developer";
+
+  // UI Changes for Edit Mode
+  const banner = document.getElementById("editNoticeBanner");
+  if (banner) banner.style.display = "flex";
+
+  const btnSubmit = document.getElementById("btnFormSubmit");
+  if (btnSubmit) {
+    btnSubmit.textContent = "💾 Save Changes";
+    btnSubmit.className = "btn btn-accent btn-full";
+  }
+
+  // Switch tab to Quick Add / Edit tab
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+  
+  const addTabBtn = document.querySelector('[data-tab="tabQuickAdd"]');
+  if (addTabBtn) addTabBtn.classList.add("active");
+  
+  const addTabContent = document.getElementById("tabQuickAdd");
+  if (addTabContent) addTabContent.classList.add("active");
+
+  showToast(`Editing item: "${item.module}"`, "info");
+};
+
+// Cancel Edit Mode
+function cancelEdit() {
+  editingItemId = null;
+
+  // Reset form
+  document.getElementById("addModule").value = "";
+  document.getElementById("addText").value = "";
+  document.getElementById("addSubBullets").value = "";
+
+  const banner = document.getElementById("editNoticeBanner");
+  if (banner) banner.style.display = "none";
+
+  const btnSubmit = document.getElementById("btnFormSubmit");
+  if (btnSubmit) {
+    btnSubmit.textContent = "🚀 Submit Item to Release Draft";
+    btnSubmit.className = "btn btn-primary btn-full";
+  }
 }
 
 // Render the application views and live HTML
@@ -437,7 +517,10 @@ function renderManageItems() {
               <span class="item-title">${escapeHtml(item.module)}</span>
               <div class="item-actions">
                 <span class="item-author">By: ${escapeHtml(item.author || "Dev")}</span>
-                <button class="btn btn-danger btn-sm btn-icon-only" onclick="deleteItem('${item.id}')" title="Delete">
+                <button class="btn btn-secondary btn-sm btn-icon-only" onclick="editItem('${item.id}')" title="Edit Item">
+                  ✏️
+                </button>
+                <button class="btn btn-danger btn-sm btn-icon-only" onclick="deleteItem('${item.id}')" title="Delete Item">
                   🗑️
                 </button>
               </div>
@@ -465,6 +548,9 @@ function renderManageItems() {
 // Global Delete Item Handler
 window.deleteItem = function(id) {
   appState.items = (appState.items || []).filter(i => i.id !== id);
+  if (editingItemId === id) {
+    cancelEdit();
+  }
   saveState(true);
   showToast("Item removed", "info");
 };
@@ -704,13 +790,10 @@ function escapeHtml(unsafe) {
 function showToast(message, type = "success") {
   let container = document.getElementById("toastContainer");
   if (!container) {
-    container = document.getElementById("toastContainer");
-    if (!container) {
-      container = document.createElement("div");
-      container.id = "toastContainer";
-      container.className = "toast-container";
-      document.body.appendChild(container);
-    }
+    container = document.createElement("div");
+    container.id = "toastContainer";
+    container.className = "toast-container";
+    document.body.appendChild(container);
   }
 
   const toast = document.createElement("div");
