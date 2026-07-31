@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Release Notes Automator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Navigation Navbar -->
+  <header class="navbar">
+    <div class="brand">
+      <div class="brand-icon">🚀</div>
+      <span>Release Notes Automator</span>
+      <span class="brand-badge">Pattern 1: Async Team Workflow</span>
+    </div>
+    <div class="nav-actions">
+      <button id="btnAiPolish" class="btn btn-accent btn-sm" title="AI Polish formatting">
+        ✨ AI Polish
+      </button>
+      <button id="btnResetData" class="btn btn-secondary btn-sm" title="Reset sample data">
+        🔄 Reset Sample
+      </button>
+      <button id="btnCopyHtml" class="btn btn-primary btn-sm">
+        📋 Copy HTML
+      </button>
+      <button id="btnDownloadHtml" class="btn btn-secondary btn-sm">
+        💾 Download .html
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Dual-Pane Layout -->
+  <main class="app-container">
+
+    <!-- Left Sidebar: Controls & Builder -->
+    <section class="panel-builder">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>Release Notes Builder</span>
+          <span style="font-size: 0.75rem; color: var(--primary); font-weight:600;">v2.0 Template</span>
+        </div>
+        <div class="panel-subtitle">
+          Submit items asynchronously & review live HTML output.
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs-container">
+          <button class="tab-btn active" data-tab="tabQuickAdd">
+            ➕ Quick Add (Devs)
+          </button>
+          <button class="tab-btn" data-tab="tabManage">
+            ⚙️ Manage & Review
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Developer Quick-Add -->
+      <div id="tabQuickAdd" class="tab-content active">
+        <form id="quickAddForm">
+          <div class="form-group">
+            <label class="form-label" for="addCategory">Category</label>
+            <select id="addCategory" class="form-select">
+              <option value="features">✨ New Feature</option>
+              <option value="improvements" selected>📈 Improvement</option>
+              <option value="fixes">🐛 Bug Fix</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="addModule">Module / Title</label>
+            <input type="text" id="addModule" class="form-input" placeholder="e.g. Claims List, MFA, Quality Forms" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="addText">Main Description (Optional)</label>
+            <input type="text" id="addText" class="form-input" placeholder="Summary or overview line for this module...">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="addSubBullets">Sub-bullet Points (One per line)</label>
+            <textarea id="addSubBullets" class="form-textarea" placeholder="Add specific enhancements or bullet details here:&#10;• First detail or feature enhancement...&#10;• Second detail..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="addAuthor">Developer / Submitter</label>
+            <input type="text" id="addAuthor" class="form-input" placeholder="Your name or team tag" value="Developer">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full" style="margin-top: 8px;">
+            🚀 Submit Item to Release Draft
+          </button>
+        </form>
+      </div>
+
+      <!-- Tab 2: Manage Draft & Header Settings -->
+      <div id="tabManage" class="tab-content">
+        <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
+          <div class="form-label" style="margin-bottom: 10px; color: var(--primary);">Header & Meta Configuration</div>
+          
+          <div class="form-group">
+            <label class="form-label" for="metaTitle">Release Header Title</label>
+            <input type="text" id="metaTitle" class="form-input" value="Release Notes">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="metaSubtitle">Subtitle Message</label>
+            <input type="text" id="metaSubtitle" class="form-input" value="We have updated our system, which includes the following changes">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="metaDate">Release Date Badge</label>
+            <input type="text" id="metaDate" class="form-input" value="07-30-2026">
+          </div>
+        </div>
+
+        <div class="form-label" style="margin-bottom: 12px; color: var(--primary);">Submitted Items List</div>
+        <div id="manageItemsContainer">
+          <!-- Dynamic cards injected via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Panel: Live Preview & Code -->
+    <section class="panel-preview">
+      <div class="preview-toolbar">
+        <div class="view-modes">
+          <button class="view-mode-btn active" data-mode="email">
+            ✉️ Email Preview (640px)
+          </button>
+          <button class="view-mode-btn" data-mode="code">
+            💻 Raw HTML Code
+          </button>
+        </div>
+        <div style="font-size: 0.775rem; color: var(--text-muted);">
+          Exact <code style="color: var(--primary);">Release_Note_V2.html</code> Styling
+        </div>
+      </div>
+
+      <div class="preview-viewport">
+        <!-- Rendered Email Iframe -->
+        <div id="emailFrameContainer" class="email-frame-container">
+          <iframe id="previewIframe" class="preview-iframe" title="Release Notes Preview"></iframe>
+        </div>
+
+        <!-- Raw HTML Code Display -->
+        <pre id="codeContainer" class="code-container"></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

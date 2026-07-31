@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Product Release Notes</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f2f4f7; font-family:Arial, Helvetica, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f2f4f7; padding:24px 0;">
+<tr>
+<td align="center">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden; border:1px solid #e2e5ea;">
+
+<!-- Header -->
+<tr>
+<td style="background-color:#1ab394; padding:28px 32px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td valign="middle">
+        <h1 style="margin:0; color:#ffffff; font-size:22px; font-family:Arial, Helvetica, sans-serif;">Release Notes</h1>
+        <p style="margin:6px 0 0 0; color:#ffffff; font-size:13px;">We have updated our system, which includes the following changes</p>
+      </td>
+      <td align="right" valign="middle" style="padding-left:16px;">
+        <!-- RELEASE DATE BADGE -->
+        <span style="background-color:rgba(255, 255, 255, 0.2); color:#ffffff; font-size:12px; padding:6px 12px; border-radius:16px; white-space:nowrap; font-weight:bold; display:inline-block;margin-bottom: 19px;">
+          Date: 07-30-2026
+        </span>
+      </td>
+    </tr>
+  </table>
+</td>
+</tr>
+
+<!-- New Features Banner -->
+<tr>
+<td style="padding:24px 32px 8px 32px;">
+<h2 style="margin:0 0 4px 0; font-size:17px; color:#1ab394; border-bottom:2px solid #1ab394; padding-bottom:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a3c6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px; margin-right:6px;"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="3"/></svg>
+ New Features</h2>
+</td>
+</tr>
+<tr>
+<td style="padding:8px 32px;">
+<ul style="margin:0; padding-left:20px; color:#374151; font-size:14px; line-height:1.7;">
+<li>
+  <strong>Claims List:</strong>
+  <ul style="margin:4px 0 8px 0; padding-left:20px;">
+<li><strong>Claims List &amp; Import Enhancements:</strong> Added new columns (<strong>Insurance Type</strong>, <strong>Plan Type</strong>, <strong>Sequence</strong>, <strong>Priority</strong>, and <strong>Last Work By</strong>) across the Add Claim, Import RAR/RA, and main grid views,<strong> with default sorting now set by Sequence</strong>.</li>
+  <li><strong>Priority Filter:</strong> Added a new <strong>Priority Filter</strong> in the Advanced filters for quicker filtering.</li>
+  <li><strong>Import Reassignment Claim:</strong> Added a new <strong>"Import Reassignment Claim"</strong> button. This functionality allows users to reassign claims based on RAR ID and Account ID, as well as update sequence and priority from the same sheet.</li>
+  </ul>
+</li>
+
+</ul>
+</td>
+</tr>
+
+<!-- Improvements -->
+<tr>
+<td style="padding:20px 32px 8px 32px;">
+<h2 style="margin:0 0 4px 0; font-size:17px; color:#1ab394; border-bottom:2px solid #1ab394; padding-bottom:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a3c6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px; margin-right:6px;"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+ Improvements</h2>
+</td>
+</tr>
+<tr>
+<td style="padding:8px 32px;">
+<ul style="margin:0; padding-left:20px; color:#374151; font-size:14px; line-height:1.7;">
+<li><strong>Authorization Tracking:</strong> Added functionality to quickly find pending authorizations based on how soon the service date is. Use 2D for the most urgent (0–2 days away), 4D for 3–4 days, 7D for 5–7 days, or 7D+ for anything further out. Click any button to filter the list instantly.</li>
+<li><strong>Account Offboarding:</strong> Added the functionality to add new churn reasons in the dropdown.</li>
+<li><strong>Service Delivery KPIs (Employee):</strong> Added functionality to display the "Files" button on the BRM Metric MOM Details page.</li>
+<li><strong>Service Delivery KPIs (Client):</strong> Added functionality to display the "Files" button on the AHS Metric MOM Details page.</li>
+<li><strong>Account Management KPIs:</strong> Added functionality to display the "Files" button on the AHS Metric MOM Details page.</li>
+<li>
+  <strong>Ask AI features Enhancement (Claim List):</strong>
+  <ul style="margin:4px 0 8px 0; padding-left:20px;">
+    <li>Only users with access can use this functionality.</li>
+    <li>Removed the mandatory requirement for the Appeal Letter field, allowing users to proceed without entering appeal letter content.</li>
+    <li>Increased the Additional Options text area size to improve visibility and provide a better editing experience.</li>
+    <li>Added support for file attachments during the appeal letter generation process.</li>
+    <li>Introduced a Review AI Instructions modal, allowing users to review the AI prompt before generating the appeal letter.</li>
+    <li>Added the <strong>User System Prompt</strong> to the <strong>Review AI Instructions</strong> modal.</li>
+  </ul>
+</li>
+<li>
+  <strong>Quality Forms</strong>
+  <ul style="margin:4px 0 8px 0; padding-left:20px;">
+    <li><strong>File Upload Validation:</strong> Added a validation message requiring a file upload if Total Error &gt; 0.</li>
+    <li><strong>Zero-Error Logic:</strong> Updated rules to allow Total Error = 0. When total error is 0, description and error type are no longer required.</li>
+    <li><strong>Audit Date Restriction:</strong> Restricted date selection to prevent selecting future dates in the Audit Date column during add/update.</li>
+    <li>Resolved file attachment-related issues.</li>
+  </ul>
+</li>
+<li><strong>Insurance master:</strong> Upgraded under-the-hood logic to enhance overall stability and reliability.</li>
+</ul>
+</td>
+</tr>
+
+<!-- Bug Fixes -->
+<tr>
+<td style="padding:20px 32px 8px 32px;">
+<h2 style="margin:0 0 4px 0; font-size:17px; color:#1ab394; border-bottom:2px solid #1ab394; padding-bottom:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a3c6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px; margin-right:6px;"><rect x="8" y="6" width="8" height="12" rx="4"/><path d="M12 6V4"/><path d="M8 10H4"/><path d="M8 14H4"/><path d="M16 10h4"/><path d="M16 14h4"/><path d="M9 3l1 2"/><path d="M15 3l-1 2"/><path d="M8 18l-2 3"/><path d="M16 18l2 3"/></svg>
+ Bug Fixes</h2>
+</td>
+</tr>
+<tr>
+<td style="padding:8px 32px;">
+<h3 style="margin:14px 0 6px 0; font-size:15px; color:#111827;">MFA</h3>
+<ul style="margin:0 0 4px 0; padding-left:20px; color:#374151; font-size:14px; line-height:1.6;">
+<li>Updated the day calculation logic to correctly display a maximum of <strong>30 days</strong>.</li>
+</ul>
+</td>
+</tr>
+
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>
