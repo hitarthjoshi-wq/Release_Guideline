@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Release Notes Automator</title>
-  
+
   <!-- Firebase SDK (Compat version for clean web app integration) -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
 
   <!-- Top Navigation Navbar -->
@@ -25,15 +27,15 @@
       </span>
     </div>
     <div class="nav-actions">
-      <button id="btnOpenFirebaseModal" class="btn btn-secondary btn-sm" title="Configure Firebase Live Sync">
+      <!-- <button id="btnOpenFirebaseModal" class="btn btn-secondary btn-sm" title="Configure Firebase Live Sync">
         ⚙️ Firebase Config
-      </button>
+      </button> -->
       <button id="btnAiPolish" class="btn btn-accent btn-sm" title="AI Polish formatting">
         ✨ AI Polish
       </button>
-      <button id="btnResetData" class="btn btn-secondary btn-sm" title="Reset sample data">
+      <!-- <button id="btnResetData" class="btn btn-secondary btn-sm" title="Reset sample data">
         🔄 Reset Sample
-      </button>
+      </button> -->
       <button id="btnCopyHtml" class="btn btn-primary btn-sm">
         📋 Copy HTML
       </button>
@@ -59,7 +61,7 @@
 
         <!-- Navigation Tabs -->
         <div class="tabs-container">
-          <button class="tab-btn active" data-tab="tabQuickAdd">
+          <button class="tab-btn active" data-tab="tabQuickAdd" id="tabQuickAddBtn">
             ➕ Quick Add (Devs)
           </button>
           <button class="tab-btn" data-tab="tabManage">
@@ -68,9 +70,14 @@
         </div>
       </div>
 
-      <!-- Tab 1: Developer Quick-Add -->
+      <!-- Tab 1: Developer Quick-Add / Edit -->
       <div id="tabQuickAdd" class="tab-content active">
         <form id="quickAddForm">
+          <div id="editNoticeBanner" style="display:none; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 14px; font-size: 0.8rem; color: #60a5fa; font-weight: 600; justify-content: space-between; align-items: center;">
+            <span>✏️ Editing Existing Item</span>
+            <button type="button" id="btnCancelEdit" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.75rem;">Cancel Edit</button>
+          </div>
+
           <div class="form-group">
             <label class="form-label" for="addCategory">Category</label>
             <select id="addCategory" class="form-select">
@@ -82,17 +89,20 @@
 
           <div class="form-group">
             <label class="form-label" for="addModule">Module / Title</label>
-            <input type="text" id="addModule" class="form-input" placeholder="e.g. Claims List, MFA, Quality Forms" required>
+            <input type="text" id="addModule" class="form-input" placeholder="e.g. Claims List, MFA, Quality Forms"
+              required>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="addText">Main Description (Optional)</label>
-            <input type="text" id="addText" class="form-input" placeholder="Summary or overview line for this module...">
+            <input type="text" id="addText" class="form-input"
+              placeholder="Summary or overview line for this module...">
           </div>
 
           <div class="form-group">
             <label class="form-label" for="addSubBullets">Sub-bullet Points (One per line)</label>
-            <textarea id="addSubBullets" class="form-textarea" placeholder="Add specific enhancements or bullet details here:&#10;• First detail or feature enhancement...&#10;• Second detail..."></textarea>
+            <textarea id="addSubBullets" class="form-textarea"
+              placeholder="Add specific enhancements or bullet details here:&#10;• First detail or feature enhancement...&#10;• Second detail..."></textarea>
           </div>
 
           <div class="form-group">
@@ -100,9 +110,11 @@
             <input type="text" id="addAuthor" class="form-input" placeholder="Your name or team tag" value="Developer">
           </div>
 
-          <button type="submit" class="btn btn-primary btn-full" style="margin-top: 8px;">
-            🚀 Submit Item to Release Draft
-          </button>
+          <div style="display: flex; gap: 8px; margin-top: 8px;">
+            <button type="submit" id="btnFormSubmit" class="btn btn-primary btn-full">
+              🚀 Submit Item to Release Draft
+            </button>
+          </div>
         </form>
       </div>
 
@@ -110,7 +122,7 @@
       <div id="tabManage" class="tab-content">
         <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
           <div class="form-label" style="margin-bottom: 10px; color: var(--primary);">Header & Meta Configuration</div>
-          
+
           <div class="form-group">
             <label class="form-label" for="metaTitle">Release Header Title</label>
             <input type="text" id="metaTitle" class="form-input" value="Release Notes">
@@ -118,7 +130,8 @@
 
           <div class="form-group">
             <label class="form-label" for="metaSubtitle">Subtitle Message</label>
-            <input type="text" id="metaSubtitle" class="form-input" value="We have updated our system, which includes the following changes">
+            <input type="text" id="metaSubtitle" class="form-input"
+              value="We have updated our system, which includes the following changes">
           </div>
 
           <div class="form-group">
@@ -163,7 +176,7 @@
 
   </main>
 
-  <!-- Firebase Credentials Config Modal -->
+  <!-- Firebase Credentials Config Modal (Hidden) -->
   <div id="firebaseModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
@@ -172,7 +185,8 @@
       </div>
       <div class="modal-body">
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
-          To sync live release notes across all developers on GitHub Pages, paste your Firebase config below. You can also hardcode this directly in <code style="color:var(--primary)">app.js</code>.
+          To sync live release notes across all developers on GitHub Pages, paste your Firebase config below. You can
+          also hardcode this directly in <code style="color:var(--primary)">app.js</code>.
         </p>
 
         <div class="form-group">
@@ -182,7 +196,8 @@
 
         <div class="form-group">
           <label class="form-label" for="fbDbUrl">Database URL (Required)</label>
-          <input type="text" id="fbDbUrl" class="form-input" placeholder="https://your-project-id-default-rtdb.firebaseio.com">
+          <input type="text" id="fbDbUrl" class="form-input"
+            placeholder="https://your-project-id-default-rtdb.firebaseio.com">
         </div>
 
         <div class="form-group">
@@ -204,4 +219,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>
