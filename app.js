@@ -1,7 +1,20 @@
 /**
  * Release Notes Generator & Automation Application Logic
  * Implements Pattern 1: Async Quick Add + Lead Review Dashboard + Live HTML Engine
+ * Realtime Sync: Firebase Realtime Database (with LocalStorage Fallback)
  */
+
+// User's Firebase Configuration (Pre-configured)
+const defaultFirebaseConfig = {
+  apiKey: "AIzaSyCd_QlfIqTpEnvx6jcdtriHFXceJCbpRLs",
+  authDomain: "releaseguideline.firebaseapp.com",
+  databaseURL: "https://releaseguideline-default-rtdb.firebaseio.com",
+  projectId: "releaseguideline",
+  storageBucket: "releaseguideline.firebasestorage.app",
+  messagingSenderId: "562524973465",
+  appId: "1:562524973465:web:caf9c28afce073eabdcb08",
+  measurementId: "G-2HYTWZRY84"
+};
 
 // Initial State with exact sample data from Release_Note_V2.html
 const defaultState = {
@@ -110,39 +123,125 @@ const defaultState = {
   ]
 };
 
-// Current Active State
-let appState = loadState();
+// Global Firebase Instance & DB Reference
+let firebaseApp = null;
+let dbRef = null;
+let isConnectedToFirebase = false;
+
+// Current Active Application State
+let appState = loadLocalState();
 
 // Initialize App on DOM Content Loaded
 document.addEventListener("DOMContentLoaded", () => {
+  initFirebase();
   initEventListeners();
-  renderApp();
+  renderApp(false);
 });
 
-// Load State from LocalStorage
-function loadState() {
+// Load state from local storage fallback
+function loadLocalState() {
   const saved = localStorage.getItem("release_notes_app_state");
   if (saved) {
     try {
       return JSON.parse(saved);
     } catch (e) {
-      console.error("Failed to parse saved state, using default:", e);
+      console.error("Failed to parse saved state:", e);
     }
   }
   return JSON.parse(JSON.stringify(defaultState));
 }
 
-// Save State to LocalStorage
-function saveState() {
+// Save state (Pushes to Firebase if connected, and saves locally)
+function saveState(pushToCloud = true) {
   localStorage.setItem("release_notes_app_state", JSON.stringify(appState));
-  renderApp();
+  
+  if (pushToCloud && isConnectedToFirebase && dbRef) {
+    dbRef.set(appState).catch(err => {
+      console.error("Firebase write error:", err);
+      showToast("Firebase Sync Error: " + err.message, "error");
+    });
+  }
+
+  renderApp(false);
+}
+
+// Initialize Firebase Realtime Database
+function initFirebase() {
+  const savedConfig = localStorage.getItem("firebase_config_credentials");
+  let fbConfig = defaultFirebaseConfig;
+
+  if (savedConfig) {
+    try {
+      fbConfig = JSON.parse(savedConfig);
+    } catch (e) {
+      console.error("Invalid saved firebase config, falling back to default:", e);
+    }
+  }
+
+  // Pre-fill inputs in modal
+  if (fbConfig && document.getElementById("fbApiKey")) {
+    document.getElementById("fbApiKey").value = fbConfig.apiKey || "";
+    document.getElementById("fbDbUrl").value = fbConfig.databaseURL || "";
+    document.getElementById("fbProjectId").value = fbConfig.projectId || "";
+  }
+
+  if (window.firebase && fbConfig && fbConfig.databaseURL) {
+    try {
+      if (!firebase.apps.length) {
+        firebaseApp = firebase.initializeApp(fbConfig);
+      } else {
+        firebaseApp = firebase.app();
+      }
+      
+      dbRef = firebase.database().ref("release_notes/active_draft");
+
+      // Set up Realtime Sync Listener
+      dbRef.on("value", (snapshot) => {
+        const cloudData = snapshot.val();
+        if (cloudData) {
+          appState = cloudData;
+          localStorage.setItem("release_notes_app_state", JSON.stringify(appState));
+          renderApp(false);
+        } else {
+          // Push initial sample data to cloud database on first setup
+          dbRef.set(appState);
+        }
+      });
+
+      isConnectedToFirebase = true;
+      updateSyncStatusUI(true);
+      console.log("🔥 Connected to Firebase Realtime Database (releaseguideline)!");
+    } catch (err) {
+      console.error("Firebase init error:", err);
+      isConnectedToFirebase = false;
+      updateSyncStatusUI(false);
+    }
+  } else {
+    isConnectedToFirebase = false;
+    updateSyncStatusUI(false);
+  }
+}
+
+// Update Sync Badge UI
+function updateSyncStatusUI(online) {
+  const badge = document.getElementById("syncStatusBadge");
+  const text = document.getElementById("syncStatusText");
+  if (!badge || !text) return;
+
+  if (online) {
+    badge.className = "status-badge badge-online";
+    text.textContent = "🔥 Realtime Synced";
+  } else {
+    badge.className = "status-badge badge-offline";
+    text.textContent = "Local Mode";
+  }
 }
 
 // Event Listeners Initialization
 function initEventListeners() {
   // Tab Switching
   document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", () => {
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
       document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
       
@@ -152,7 +251,7 @@ function initEventListeners() {
     });
   });
 
-  // View Mode Switching (Email Frame vs Code)
+  // View Mode Switching
   document.querySelectorAll(".view-mode-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".view-mode-btn").forEach(b => b.classList.remove("active"));
@@ -202,8 +301,9 @@ function initEventListeners() {
         author
       };
 
+      if (!appState.items) appState.items = [];
       appState.items.push(newItem);
-      saveState();
+      saveState(true);
       
       // Reset form
       document.getElementById("addModule").value = "";
@@ -215,43 +315,70 @@ function initEventListeners() {
   }
 
   // Header Metadata Inputs
-  const inputTitle = document.getElementById("metaTitle");
-  const inputSubtitle = document.getElementById("metaSubtitle");
-  const inputDate = document.getElementById("metaDate");
+  document.getElementById("metaTitle")?.addEventListener("change", (e) => {
+    appState.releaseMeta.title = e.target.value;
+    saveState(true);
+  });
+  document.getElementById("metaSubtitle")?.addEventListener("change", (e) => {
+    appState.releaseMeta.subtitle = e.target.value;
+    saveState(true);
+  });
+  document.getElementById("metaDate")?.addEventListener("change", (e) => {
+    appState.releaseMeta.releaseDate = e.target.value;
+    saveState(true);
+  });
 
-  if (inputTitle) {
-    inputTitle.addEventListener("input", (e) => {
-      appState.releaseMeta.title = e.target.value;
-      saveState();
-    });
-  }
-  if (inputSubtitle) {
-    inputSubtitle.addEventListener("input", (e) => {
-      appState.releaseMeta.subtitle = e.target.value;
-      saveState();
-    });
-  }
-  if (inputDate) {
-    inputDate.addEventListener("input", (e) => {
-      appState.releaseMeta.releaseDate = e.target.value;
-      saveState();
-    });
-  }
-
-  // Header Action Buttons
+  // Top Bar Action Buttons
   document.getElementById("btnCopyHtml")?.addEventListener("click", copyHtmlToClipboard);
   document.getElementById("btnDownloadHtml")?.addEventListener("click", downloadHtmlFile);
   document.getElementById("btnResetData")?.addEventListener("click", resetToSampleData);
   document.getElementById("btnAiPolish")?.addEventListener("click", runAiPolish);
+
+  // Firebase Config Modal Open / Close
+  const modal = document.getElementById("firebaseModal");
+  document.getElementById("btnOpenFirebaseModal")?.addEventListener("click", () => {
+    modal.classList.add("active");
+  });
+  document.getElementById("btnCloseFirebaseModal")?.addEventListener("click", () => {
+    modal.classList.remove("active");
+  });
+
+  // Save Firebase Config
+  document.getElementById("btnSaveFirebaseConfig")?.addEventListener("click", () => {
+    const apiKey = document.getElementById("fbApiKey").value.trim();
+    const databaseURL = document.getElementById("fbDbUrl").value.trim();
+    const projectId = document.getElementById("fbProjectId").value.trim();
+
+    if (!databaseURL) {
+      showToast("Please enter at least the Database URL", "error");
+      return;
+    }
+
+    const config = { ...defaultFirebaseConfig, apiKey, databaseURL, projectId };
+    localStorage.setItem("firebase_config_credentials", JSON.stringify(config));
+    modal.classList.remove("active");
+
+    showToast("Firebase Config Saved! Initializing sync...", "info");
+    initFirebase();
+  });
+
+  // Clear Firebase Config
+  document.getElementById("btnClearFirebaseConfig")?.addEventListener("click", () => {
+    localStorage.removeItem("firebase_config_credentials");
+    modal.classList.remove("active");
+    isConnectedToFirebase = false;
+    updateSyncStatusUI(false);
+    showToast("Disconnected Firebase. Using Local Storage.", "info");
+  });
 }
 
 // Render the application views and live HTML
-function renderApp() {
+function renderApp(pushToCloud = false) {
   // Update Header Inputs
   if (document.getElementById("metaTitle")) {
-    document.getElementById("metaTitle").value = appState.releaseMeta.title;
-    document.getElementById("metaSubtitle").value = appState.releaseMeta.subtitle;
-    document.getElementById("metaDate").value = appState.releaseMeta.releaseDate;
+    document.getElementById("metaTitle").value = appState.releaseMeta?.title || "Release Notes";
+    document.getElementById("metaSubtitle").value = appState.releaseMeta?.subtitle || "";
+    document.getElementById("metaDate").value = appState.releaseMeta?.releaseDate || "07-30-2026";
   }
 
   // Render Items List in Manage Tab
@@ -278,6 +405,7 @@ function renderManageItems() {
   const container = document.getElementById("manageItemsContainer");
   if (!container) return;
 
+  const items = appState.items || [];
   const categories = [
     { key: "features", title: "New Features", class: "tag-features" },
     { key: "improvements", title: "Improvements", class: "tag-improvements" },
@@ -287,7 +415,7 @@ function renderManageItems() {
   let html = "";
 
   categories.forEach(cat => {
-    const catItems = appState.items.filter(i => i.category === cat.key);
+    const catItems = items.filter(i => i.category === cat.key);
 
     html += `
       <div class="section-card">
@@ -336,23 +464,24 @@ function renderManageItems() {
 
 // Global Delete Item Handler
 window.deleteItem = function(id) {
-  appState.items = appState.items.filter(i => i.id !== id);
-  saveState();
+  appState.items = (appState.items || []).filter(i => i.id !== id);
+  saveState(true);
   showToast("Item removed", "info");
 };
 
 // Generate exact Release_Note_V2.html structure
 function generateReleaseHTML(state) {
-  const meta = state.releaseMeta;
-  const features = state.items.filter(i => i.category === "features");
-  const improvements = state.items.filter(i => i.category === "improvements");
-  const fixes = state.items.filter(i => i.category === "fixes");
+  const meta = state.releaseMeta || {};
+  const items = state.items || [];
+  const features = items.filter(i => i.category === "features");
+  const improvements = items.filter(i => i.category === "improvements");
+  const fixes = items.filter(i => i.category === "fixes");
 
   let html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>${escapeHtml(meta.title)}</title>
+<title>${escapeHtml(meta.title || "Release Notes")}</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f2f4f7; font-family:Arial, Helvetica, sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f2f4f7; padding:24px 0;">
@@ -366,13 +495,13 @@ function generateReleaseHTML(state) {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td valign="middle">
-        <h1 style="margin:0; color:#ffffff; font-size:22px; font-family:Arial, Helvetica, sans-serif;">${escapeHtml(meta.title)}</h1>
-        <p style="margin:6px 0 0 0; color:#ffffff; font-size:13px;">${escapeHtml(meta.subtitle)}</p>
+        <h1 style="margin:0; color:#ffffff; font-size:22px; font-family:Arial, Helvetica, sans-serif;">${escapeHtml(meta.title || "Release Notes")}</h1>
+        <p style="margin:6px 0 0 0; color:#ffffff; font-size:13px;">${escapeHtml(meta.subtitle || "")}</p>
       </td>
       <td align="right" valign="middle" style="padding-left:16px;">
         <!-- RELEASE DATE BADGE -->
         <span style="background-color:rgba(255, 255, 255, 0.2); color:#ffffff; font-size:12px; padding:6px 12px; border-radius:16px; white-space:nowrap; font-weight:bold; display:inline-block;margin-bottom: 19px;">
-          Date: ${escapeHtml(meta.releaseDate)}
+          Date: ${escapeHtml(meta.releaseDate || "")}
         </span>
       </td>
     </tr>
@@ -499,7 +628,6 @@ function renderItemHTML(item) {
 // Format bold text automatically for key terms inside bullet points
 function formatBoldText(str) {
   let safe = escapeHtml(str);
-  // Highlight terms inside quotes or before colons if not already formatted
   safe = safe.replace(/&quot;(.*?)&quot;/g, '<strong>"$1"</strong>');
   return safe;
 }
@@ -522,7 +650,7 @@ function downloadHtmlFile() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `Release_Note_${appState.releaseMeta.releaseDate.replace(/[\/\s]/g, "-")}.html`;
+  a.download = `Release_Note_${(appState.releaseMeta?.releaseDate || "draft").replace(/[\/\s]/g, "-")}.html`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -534,7 +662,7 @@ function downloadHtmlFile() {
 function resetToSampleData() {
   if (confirm("Reset current draft to standard sample release notes?")) {
     appState = JSON.parse(JSON.stringify(defaultState));
-    saveState();
+    saveState(true);
     showToast("Reset to sample release notes", "info");
   }
 }
@@ -543,7 +671,7 @@ function resetToSampleData() {
 function runAiPolish() {
   showToast("Running AI Polish & Formatting...", "info");
   setTimeout(() => {
-    appState.items.forEach(item => {
+    (appState.items || []).forEach(item => {
       if (item.text) {
         item.text = item.text.trim();
         if (!item.text.endsWith('.')) item.text += '.';
@@ -556,7 +684,7 @@ function runAiPolish() {
         });
       }
     });
-    saveState();
+    saveState(true);
     showToast("✨ AI Polish complete! Bullet formatting standardized.", "success");
   }, 600);
 }
@@ -576,10 +704,13 @@ function escapeHtml(unsafe) {
 function showToast(message, type = "success") {
   let container = document.getElementById("toastContainer");
   if (!container) {
-    container = document.createElement("div");
-    container.id = "toastContainer";
-    container.className = "toast-container";
-    document.body.appendChild(container);
+    container = document.getElementById("toastContainer");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "toastContainer";
+      container.className = "toast-container";
+      document.body.appendChild(container);
+    }
   }
 
   const toast = document.createElement("div");
