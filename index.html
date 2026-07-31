@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Release Notes Automator</title>
+  
+  <!-- Firebase SDK (Compat version for clean web app integration) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,8 +19,15 @@
       <div class="brand-icon">🚀</div>
       <span>Release Notes Automator</span>
       <span class="brand-badge">Pattern 1: Async Team Workflow</span>
+      <!-- Sync Status Indicator -->
+      <span id="syncStatusBadge" class="status-badge badge-offline" title="Sync Status">
+        <span class="status-dot"></span> <span id="syncStatusText">Local Storage</span>
+      </span>
     </div>
     <div class="nav-actions">
+      <button id="btnOpenFirebaseModal" class="btn btn-secondary btn-sm" title="Configure Firebase Live Sync">
+        ⚙️ Firebase Config
+      </button>
       <button id="btnAiPolish" class="btn btn-accent btn-sm" title="AI Polish formatting">
         ✨ AI Polish
       </button>
@@ -150,6 +162,45 @@
     </section>
 
   </main>
+
+  <!-- Firebase Credentials Config Modal -->
+  <div id="firebaseModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">🔥 Firebase Realtime Database Setup</div>
+        <button id="btnCloseFirebaseModal" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
+          To sync live release notes across all developers on GitHub Pages, paste your Firebase config below. You can also hardcode this directly in <code style="color:var(--primary)">app.js</code>.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="fbApiKey">API Key</label>
+          <input type="text" id="fbApiKey" class="form-input" placeholder="AIzaSy...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="fbDbUrl">Database URL (Required)</label>
+          <input type="text" id="fbDbUrl" class="form-input" placeholder="https://your-project-id-default-rtdb.firebaseio.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="fbProjectId">Project ID</label>
+          <input type="text" id="fbProjectId" class="form-input" placeholder="your-project-id">
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top: 18px;">
+          <button id="btnSaveFirebaseConfig" class="btn btn-primary btn-full">
+            💾 Save & Connect Firebase
+          </button>
+          <button id="btnClearFirebaseConfig" class="btn btn-danger btn-sm">
+            Disconnect
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
