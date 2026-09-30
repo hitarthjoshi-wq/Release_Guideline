@@ -94,15 +94,33 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="addText">Main Description (Optional)</label>
+            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;" for="addText">
+              <span>Main Description (Optional)</span>
+              <span class="toolbar" style="display: flex; gap: 4px;">
+                <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="insertTag('addText', 'b')" title="Bold"><b>B</b></button>
+                <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="insertTag('addText', 'i')" title="Italic"><i>I</i></button>
+                <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="insertTag('addText', 'u')" title="Underline"><u>U</u></button>
+                <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="insertTag('addText', 'code')" title="Code">&lt;/&gt;</button>
+              </span>
+            </label>
             <input type="text" id="addText" class="form-input"
               placeholder="Summary or overview line for this module...">
+            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">HTML tags are supported. Highlight text and use buttons to format.</div>
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="addSubBullets">Sub-bullet Points (One per line)</label>
+            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;" for="addSubBullets">
+              <span>Sub-bullet Points (One per line)</span>
+              <span class="toolbar" style="display: flex; gap: 4px;">
+                <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="insertTag('addSubBullets', 'b')" title="Bold"><b>B</b></button>
+                <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="insertTag('addSubBullets', 'i')" title="Italic"><i>I</i></button>
+                <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="insertTag('addSubBullets', 'u')" title="Underline"><u>U</u></button>
+                <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="insertTag('addSubBullets', 'code')" title="Code">&lt;/&gt;</button>
+              </span>
+            </label>
             <textarea id="addSubBullets" class="form-textarea"
               placeholder="Add specific enhancements or bullet details here:&#10;• First detail or feature enhancement...&#10;• Second detail..."></textarea>
+            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">HTML tags are supported. Highlight text and use buttons to format.</div>
           </div>
 
           <div class="form-group">
@@ -170,7 +188,12 @@
         </div>
 
         <!-- Raw HTML Code Display -->
-        <pre id="codeContainer" class="code-container"></pre>
+        <div id="codeViewWrapper" style="display: none; width: 100%;">
+          <textarea id="codeContainer" class="code-container" style="display: block; resize: none; margin-bottom: 12px;"></textarea>
+          <button id="btnUpdatePreview" class="btn btn-primary btn-full">
+            🔄 Update Preview from Custom HTML
+          </button>
+        </div>
       </div>
     </section>
 
