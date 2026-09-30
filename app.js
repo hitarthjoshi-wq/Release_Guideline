@@ -262,14 +262,14 @@ function initEventListeners() {
       
       const mode = btn.getAttribute("data-mode");
       const frame = document.getElementById("emailFrameContainer");
-      const code = document.getElementById("codeContainer");
+      const codeWrapper = document.getElementById("codeViewWrapper");
       
       if (mode === "email") {
         frame.style.display = "block";
-        code.style.display = "none";
+        codeWrapper.style.display = "none";
       } else {
         frame.style.display = "none";
-        code.style.display = "block";
+        codeWrapper.style.display = "block";
       }
     });
   });
@@ -358,6 +358,16 @@ function initEventListeners() {
   document.getElementById("btnResetData")?.addEventListener("click", resetToSampleData);
   document.getElementById("btnAiPolish")?.addEventListener("click", runAiPolish);
 
+  // Custom HTML Preview
+  document.getElementById("btnUpdatePreview")?.addEventListener("click", () => {
+    const customHtml = document.getElementById("codeContainer").value;
+    const iframe = document.getElementById("previewIframe");
+    if (iframe) {
+      iframe.srcdoc = customHtml;
+    }
+    showToast("Preview updated with custom HTML!", "success");
+  });
+
   // Firebase Config Modal Open / Close
   const modal = document.getElementById("firebaseModal");
   document.getElementById("btnOpenFirebaseModal")?.addEventListener("click", () => {
@@ -433,6 +443,26 @@ window.editItem = function(id) {
   showToast(`Editing item: "${item.module}"`, "info");
 };
 
+// Text formatting toolbar helper
+window.insertTag = function(inputId, tag) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  
+  const start = el.selectionStart;
+  const end = el.selectionEnd;
+  const text = el.value;
+  
+  const selectedText = text.substring(start, end);
+  const replacement = `<${tag}>${selectedText}</${tag}>`;
+  
+  el.value = text.substring(0, start) + replacement + text.substring(end);
+  
+  // Restore cursor position
+  el.focus();
+  el.selectionStart = start + tag.length + 2;
+  el.selectionEnd = start + tag.length + 2 + selectedText.length;
+};
+
 // Cancel Edit Mode
 function cancelEdit() {
   editingItemId = null;
@@ -476,7 +506,7 @@ function renderApp(pushToCloud = false) {
   // Update Code View
   const codeElem = document.getElementById("codeContainer");
   if (codeElem) {
-    codeElem.textContent = htmlContent;
+    codeElem.value = htmlContent;
   }
 }
 
@@ -525,10 +555,10 @@ function renderManageItems() {
                 </button>
               </div>
             </div>
-            ${item.text ? `<div style="font-size:0.8rem; color:var(--text-sub); margin-top:4px;">${escapeHtml(item.text)}</div>` : ''}
+            ${item.text ? `<div style="font-size:0.8rem; color:var(--text-sub); margin-top:4px;">${item.text}</div>` : ''}
             ${item.subBullets && item.subBullets.length > 0 ? `
               <ul class="item-subbullets">
-                ${item.subBullets.map(sb => `<li>${escapeHtml(sb)}</li>`).join('')}
+                ${item.subBullets.map(sb => `<li>${sb}</li>`).join('')}
               </ul>
             ` : ''}
           </div>
@@ -713,9 +743,8 @@ function renderItemHTML(item) {
 
 // Format bold text automatically for key terms inside bullet points
 function formatBoldText(str) {
-  let safe = escapeHtml(str);
-  safe = safe.replace(/&quot;(.*?)&quot;/g, '<strong>"$1"</strong>');
-  return safe;
+  // Allow HTML, no escaping
+  return str;
 }
 
 // Copy HTML to Clipboard
