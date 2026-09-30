@@ -540,13 +540,19 @@ function renderManageItems() {
     if (catItems.length === 0) {
       html += `<div class="empty-state">No items added to ${cat.title} yet.</div>`;
     } else {
-      catItems.forEach((item) => {
+      catItems.forEach((item, idx) => {
         html += `
           <div class="item-card">
             <div class="item-card-head">
               <span class="item-title">${escapeHtml(item.module)}</span>
               <div class="item-actions">
                 <span class="item-author">By: ${escapeHtml(item.author || "Dev")}</span>
+                <button class="btn btn-secondary btn-sm btn-icon-only" onclick="moveItem('${item.id}', 'up')" title="Move Up" ${idx === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>
+                  ⬆️
+                </button>
+                <button class="btn btn-secondary btn-sm btn-icon-only" onclick="moveItem('${item.id}', 'down')" title="Move Down" ${idx === catItems.length - 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>
+                  ⬇️
+                </button>
                 <button class="btn btn-secondary btn-sm btn-icon-only" onclick="editItem('${item.id}')" title="Edit Item">
                   ✏️
                 </button>
@@ -583,6 +589,32 @@ window.deleteItem = function(id) {
   }
   saveState(true);
   showToast("Item removed", "info");
+};
+
+// Global Move Item Handler (Up or Down within category)
+window.moveItem = function(id, direction) {
+  const items = appState.items || [];
+  const index = items.findIndex(i => i.id === id);
+  if (index === -1) return;
+
+  const item = items[index];
+  
+  const catItems = items.filter(i => i.category === item.category);
+  const catIndex = catItems.findIndex(i => i.id === id);
+  
+  if (direction === 'up' && catIndex > 0) {
+    const prevItemId = catItems[catIndex - 1].id;
+    const prevIndex = items.findIndex(i => i.id === prevItemId);
+    // Swap
+    [items[index], items[prevIndex]] = [items[prevIndex], items[index]];
+    saveState(true);
+  } else if (direction === 'down' && catIndex < catItems.length - 1) {
+    const nextItemId = catItems[catIndex + 1].id;
+    const nextIndex = items.findIndex(i => i.id === nextItemId);
+    // Swap
+    [items[index], items[nextIndex]] = [items[nextIndex], items[index]];
+    saveState(true);
+  }
 };
 
 // Generate exact Release_Note_V2.html structure
